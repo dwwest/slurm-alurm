@@ -8,7 +8,7 @@
 #SBATCH --error=logs/monitor_%j.err
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
-#SBATCH --mem=256M
+#SBATCH --mem=64M
 #SBATCH --time=24:00:00          # extend if your array may run longer than 24 h
 # --partition and --account are intentionally left unset; pass them via sbatch flags
 # or uncomment and fill in:
