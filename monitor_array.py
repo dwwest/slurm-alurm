@@ -95,6 +95,7 @@ def main():
     print(f"[{timestamp()}] Own Slurm job ID     : {own_job_id or '(not running under Slurm)'}", flush=True)
 
     start_time = time.time()
+    ever_seen = False  # becomes True once the job appears in squeue
 
     while True:
         jobs = query_squeue(args.job_id, own_job_id)
@@ -105,12 +106,18 @@ def main():
             continue
 
         if jobs:
+            ever_seen = True
             print(f"[{timestamp()}] {len(jobs)} task(s) still queued/running: {', '.join(jobs[:10])}"
                   f"{'...' if len(jobs) > 10 else ''}", flush=True)
-        else:
+        elif ever_seen:
             print(f"[{timestamp()}] No tasks remaining. Sending notification.", flush=True)
             send_email(args.email, args.job_id, start_time)
             break
+        else:
+            print(f"[{timestamp()}] WARNING: job {args.job_id} not found in squeue. "
+                  "It may not exist, may have already finished, or the ID may be wrong. "
+                  "No email sent. Exiting.", file=sys.stderr, flush=True)
+            sys.exit(1)
 
         time.sleep(args.interval)
 

@@ -1,4 +1,5 @@
-# Slurm output/error logs produced by monitor_job.shmonitor_*.out
+# Slurm output/error logs produced by monitor_job.sh
+monitor_*.out
 monitor_*.err
 
 # General Slurm job logs
