@@ -81,6 +81,7 @@ fi
 echo "Submitting monitor job..."
 MONITOR_OUTPUT=$(sbatch \
     --dependency="after:${ARRAY_JOB_ID}" \
+    --export=ALL,SLURM_ALURM_DIR="${SCRIPT_DIR}" \
     "${EXTRA_FLAGS[@]}" \
     "${SCRIPT_DIR}/monitor_job.sh" \
     "$ARRAY_JOB_ID" \

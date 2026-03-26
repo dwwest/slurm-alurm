@@ -32,8 +32,8 @@ ARRAY_JOB_ID="$1"
 EMAIL="$2"
 INTERVAL="${3:-30}"
 
-# ── Locate monitor_array.py relative to this script ───────────────────────────
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# ── Locate monitor_array.py (use env var when Slurm copies script to spool dir) ─
+SCRIPT_DIR="${SLURM_ALURM_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}"
 MONITOR_PY="${SCRIPT_DIR}/monitor_array.py"
 
 if [[ ! -f "$MONITOR_PY" ]]; then
