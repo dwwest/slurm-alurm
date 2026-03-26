@@ -11,8 +11,8 @@
 #   alurm <JOB_ID>
 #
 #SBATCH --job-name=alurm_test
-#SBATCH --output=alurm_test_%A_%a.out
-#SBATCH --error=alurm_test_%A_%a.err
+#SBATCH --output=logs/alurm_test_%A_%a.out
+#SBATCH --error=logs/alurm_test_%A_%a.err
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=64M

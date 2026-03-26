@@ -4,8 +4,8 @@
 #
 # Slurm directives — adjust partition/account/time to match your cluster.
 #SBATCH --job-name=array_monitor
-#SBATCH --output=monitor_%j.out
-#SBATCH --error=monitor_%j.err
+#SBATCH --output=logs/monitor_%j.out
+#SBATCH --error=logs/monitor_%j.err
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=256M
