@@ -19,6 +19,10 @@ def parse_args():
     parser.add_argument("--job-id", required=True, help="Slurm job array ID to watch")
     parser.add_argument("--email", required=True, help="Email address to notify on completion")
     parser.add_argument("--interval", type=int, default=30, help="Polling interval in seconds (default: 30)")
+    parser.add_argument("--not-found-retries", type=int, default=3,
+                        help="How many consecutive 'not found' results to tolerate before "
+                             "treating the job as missing (default: 3). Handles the race "
+                             "where the job finishes before the first poll.")
     return parser.parse_args()
 
 
@@ -110,7 +114,8 @@ def main():
     print(f"[{timestamp()}] Own Slurm job ID     : {own_job_id or '(not running under Slurm)'}", flush=True)
 
     start_time = time.time()
-    ever_seen = False  # becomes True once the job appears in squeue
+    ever_seen = False      # becomes True once the job appears in squeue
+    not_found_count = 0    # consecutive polls where the job was absent before ever_seen
 
     while True:
         jobs = query_squeue(args.job_id, own_job_id)
@@ -122,6 +127,7 @@ def main():
 
         if jobs:
             ever_seen = True
+            not_found_count = 0
             print(f"[{timestamp()}] {len(jobs)} task(s) still queued/running: {', '.join(jobs[:10])}"
                   f"{'...' if len(jobs) > 10 else ''}", flush=True)
         elif ever_seen:
@@ -129,8 +135,17 @@ def main():
             send_completion_email(args.email, args.job_id, start_time)
             break
         else:
-            print(f"[{timestamp()}] WARNING: job {args.job_id} not found in squeue. "
-                  "It may not exist, may have already finished, or the ID may be wrong. "
+            # Job not yet visible — may have finished before the first poll.
+            not_found_count += 1
+            if not_found_count < args.not_found_retries:
+                print(f"[{timestamp()}] Job {args.job_id} not found in squeue "
+                      f"(attempt {not_found_count}/{args.not_found_retries}), retrying...",
+                      flush=True)
+                time.sleep(args.interval)
+                continue
+            print(f"[{timestamp()}] WARNING: job {args.job_id} not found in squeue after "
+                  f"{not_found_count} attempt(s). It may not exist, may have already finished "
+                  "before monitoring began, or the ID may be wrong. "
                   "Sending error notification.", file=sys.stderr, flush=True)
             send_error_email(args.email, args.job_id)
             sys.exit(1)

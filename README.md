@@ -13,6 +13,25 @@ Polls `squeue` every 30 seconds and emails you when a Slurm job array finishes.
 
 ---
 
+## Setting up the `alurm` alias
+
+Add this to your `~/.bashrc` (or `~/.zshrc`), replacing the email and path:
+
+```bash
+export ALURM_EMAIL="you@example.com"
+export ALURM_DIR="/path/to/slurm_alurm"
+alias alurm='submit_monitor.sh --email "$ALURM_EMAIL" --existing-job'
+```
+
+Then `source ~/.bashrc` and use it as:
+
+```bash
+sbatch --array=1-3 test_job.sh
+alurm <JOB_ID>
+```
+
+---
+
 ## Quick start
 
 ### Option A — Submit your array and monitor together
