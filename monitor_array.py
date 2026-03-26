@@ -54,7 +54,20 @@ def query_squeue(array_job_id, own_job_id):
         sys.exit(1)
 
 
-def send_email(to_address, array_job_id, start_time):
+def send_email(to_address, subject, body):
+    cmd = ["mail", "-s", subject, to_address]
+    try:
+        subprocess.run(cmd, input=body, text=True, timeout=30, check=True)
+        print(f"[{timestamp()}] Email sent to {to_address}.", flush=True)
+    except subprocess.CalledProcessError as exc:
+        print(f"[{timestamp()}] WARNING: mail command failed (exit {exc.returncode}). "
+              "Check that sendmail/postfix is configured on this host.", file=sys.stderr)
+    except FileNotFoundError:
+        print(f"[{timestamp()}] WARNING: 'mail' command not found. "
+              "Email not sent. Install mailutils/sendmail on this host.", file=sys.stderr)
+
+
+def send_completion_email(to_address, array_job_id, start_time):
     elapsed = time.time() - start_time
     hours, rem = divmod(int(elapsed), 3600)
     minutes, seconds = divmod(rem, 60)
@@ -67,17 +80,19 @@ def send_email(to_address, array_job_id, start_time):
         f"Total monitoring time:       {elapsed_str}\n\n"
         f"This notification was sent by monitor_array.py running on {os.uname().nodename}.\n"
     )
+    send_email(to_address, subject, body)
 
-    cmd = ["mail", "-s", subject, to_address]
-    try:
-        subprocess.run(cmd, input=body, text=True, timeout=30, check=True)
-        print(f"[{timestamp()}] Email sent to {to_address}.", flush=True)
-    except subprocess.CalledProcessError as exc:
-        print(f"[{timestamp()}] WARNING: mail command failed (exit {exc.returncode}). "
-              "Check that sendmail/postfix is configured on this host.", file=sys.stderr)
-    except FileNotFoundError:
-        print(f"[{timestamp()}] WARNING: 'mail' command not found. "
-              "Email not sent. Install mailutils/sendmail on this host.", file=sys.stderr)
+
+def send_error_email(to_address, array_job_id):
+    subject = f"[SLURM ALURM] ERROR: Job array {array_job_id} not found"
+    body = (
+        f"monitor_array.py could not find job array {array_job_id} in squeue.\n\n"
+        f"The job may not exist, may have already finished before monitoring began,\n"
+        f"or the job ID may be incorrect.\n\n"
+        f"No completion notification will be sent.\n\n"
+        f"This error was reported by monitor_array.py running on {os.uname().nodename}.\n"
+    )
+    send_email(to_address, subject, body)
 
 
 def timestamp():
@@ -111,12 +126,13 @@ def main():
                   f"{'...' if len(jobs) > 10 else ''}", flush=True)
         elif ever_seen:
             print(f"[{timestamp()}] No tasks remaining. Sending notification.", flush=True)
-            send_email(args.email, args.job_id, start_time)
+            send_completion_email(args.email, args.job_id, start_time)
             break
         else:
             print(f"[{timestamp()}] WARNING: job {args.job_id} not found in squeue. "
                   "It may not exist, may have already finished, or the ID may be wrong. "
-                  "No email sent. Exiting.", file=sys.stderr, flush=True)
+                  "Sending error notification.", file=sys.stderr, flush=True)
+            send_error_email(args.email, args.job_id)
             sys.exit(1)
 
         time.sleep(args.interval)

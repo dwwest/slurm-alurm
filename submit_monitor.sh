@@ -76,11 +76,11 @@ else
 fi
 
 # ── Submit the monitor job ────────────────────────────────────────────────────
-# Use --dependency=afterany so the monitor starts once Slurm accepts the array.
+# Use --dependency=after so the monitor starts once the array job begins executing.
 # It will keep polling until all tasks leave the queue.
 echo "Submitting monitor job..."
 MONITOR_OUTPUT=$(sbatch \
-    --dependency="afterany:${ARRAY_JOB_ID}" \
+    --dependency="after:${ARRAY_JOB_ID}" \
     "${EXTRA_FLAGS[@]}" \
     "${SCRIPT_DIR}/monitor_job.sh" \
     "$ARRAY_JOB_ID" \
