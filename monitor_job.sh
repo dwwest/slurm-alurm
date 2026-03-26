@@ -17,6 +17,11 @@
 
 set -euo pipefail
 
+# ── Conda initialisation ───────────────────────────────────────────────────────
+# shellcheck source=/dev/null
+source ~/miniforge3/etc/profile.d/conda.sh
+conda activate slurm_alurm
+
 # ── Argument handling ──────────────────────────────────────────────────────────
 if [[ $# -lt 2 ]]; then
     echo "Usage: sbatch monitor_job.sh <ARRAY_JOB_ID> <EMAIL> [INTERVAL_SECONDS]"
@@ -40,7 +45,7 @@ echo "Starting monitor for job array: ${ARRAY_JOB_ID}"
 echo "Notification will be sent to:  ${EMAIL}"
 echo "Poll interval:                 ${INTERVAL}s"
 
-python3 "$MONITOR_PY" \
+python "$MONITOR_PY" \
     --job-id   "$ARRAY_JOB_ID" \
     --email    "$EMAIL" \
     --interval "$INTERVAL"

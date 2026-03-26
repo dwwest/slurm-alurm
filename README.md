@@ -9,6 +9,7 @@ Polls `squeue` every 30 seconds and emails you when a Slurm job array finishes.
 | `monitor_array.py` | Python poller — does the actual work |
 | `monitor_job.sh` | `sbatch` wrapper that submits the poller as a Slurm job |
 | `submit_monitor.sh` | Convenience script: submit your array **and** the monitor together |
+| `test_job.sh` | Dummy array job (5-minute sleep) for end-to-end testing |
 
 ---
 
@@ -38,6 +39,30 @@ sbatch monitor_job.sh <ARRAY_JOB_ID> <EMAIL> [INTERVAL_SECONDS]
 # e.g.
 sbatch monitor_job.sh 987654 you@example.com 60
 ```
+
+---
+
+## Testing
+
+`test_job.sh` is a dummy array job where each task sleeps for 5 minutes then
+exits cleanly. Use it to verify the monitor works end-to-end.
+
+### Option A — Submit array and monitor together
+
+```bash
+./submit_monitor.sh --email you@example.com -- \
+    sbatch --array=1-3 test_job.sh
+```
+
+### Option B — Submit array first, then monitor with the alias
+
+```bash
+sbatch --array=1-3 test_job.sh
+alurm <JOB_ID>
+```
+
+You'll receive an email once all tasks complete. Output logs are written to
+`alurm_test_<ARRAY_ID>_<TASK_ID>.out` in the working directory.
 
 ---
 
