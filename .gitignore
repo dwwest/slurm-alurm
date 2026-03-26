@@ -1,9 +1,8 @@
-# Slurm output/error logs produced by monitor_job.sh
-logs/monitor_*.out
-logs/monitor_*.err
+# Slurm output/error logs produced by monitor_job.shmonitor_*.out
+monitor_*.err
 
 # General Slurm job logs
-logs/slurm-*.out
+slurm-*.out
 
 # Python
 __pycache__/
